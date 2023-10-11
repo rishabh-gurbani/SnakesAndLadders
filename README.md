@@ -30,8 +30,8 @@ But for more players, creating a list of players is better instead of using n va
 2. **Deciding current and next player**
 Lookup table appropriate for 2 players.
 But since we're using a list of players, we can simply point to next player in list.
-3. **Board Status**
-
+3. **Board Status** \
+Two Approaches \
     i.  **Creating a 10x10 array to visualise the board:** \
 While it is visually representative and closer to domain,
 the majority of the array will be empty at all times.
@@ -51,6 +51,7 @@ This saves us from having a sparse array. \
 Storing all the previous moves of the players, is not particularly helpful for the core
 of this game. In tic-tac-toe, combination of all previous moves was crucial in deciding outcome.
 Here, at any point, only current position of the players help decide outcome. \
+Hence I'm going with the second approach. \
 Extension :
 Storing history/past positions of these players in a list to make it modular.
 Can be helpful to implement undo functions or rollback to any point in the game. \
