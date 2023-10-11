@@ -65,7 +65,9 @@ const snakeLadders = (playerNames) => {
     // 5. Snake and Ladder positions on board
     // using a lookup table for snake and ladder, start and end points.
     // start : end
-    const snakes = {
+    // can expose API to simpy add, remove or create new positions from scratch
+    // snakes, ladders defined with "let", for these modifications, in case of new positions
+    let snakes = {
         28: 10,
         37: 3,
         48: 16,
@@ -74,13 +76,23 @@ const snakeLadders = (playerNames) => {
         96: 42,
     }
 
-    const ladders = {
+    let ladders = {
         4: 56,
         12: 50,
         14: 55,
         22: 58,
         41: 79,
         54: 88,
+    }
+
+    // if single change
+    const addOrModifySnakes = (start, end) => {
+        snakes[start] = end;
+    }
+
+    // positions is a list of list, each list having start, end positions
+    const createNewSnakes = (positions) =>{
+        snakes = positions.reduce((acc, [start, end]) => ({ ...acc, [start]: end }), {});
     }
 
     // A valid move has to only consider the number on the die
@@ -151,7 +163,5 @@ const snakeLadders = (playerNames) => {
 
 
 }
-
-// snakeLadders();
 
 module.exports = {snakeLadders}
