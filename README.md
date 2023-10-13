@@ -8,8 +8,9 @@
 4. Moves ahead.
 5. If encounter snake, move down. If encounter ladder, move up. [rule]
 6. If rolled number was 6, get extra turn. Else next player rolls. [rule]
-7. Goes on until one reaches 100. 
-8. Need to reach exact 100, else remains at same position. [rule]
+7. If 6 rolled thrice, nullify all three moves and let next player roll.
+8. Goes on until one reaches 100. 
+9. Need to reach exact 100, else remains at same position. [rule]
 
 ## Requirements
 
@@ -44,8 +45,8 @@ We would probably have to store their moves in two separate arrays \
 X:[1, 3, 4] \
 O:[2, 5, 6] \
 Instead, storing the all information in the board was compact, and closer to the domain.\
-    ii. **Representing the board status with a map:** \
-Storing the current position of both players in a Map. \
+    ii. **Representing the board status with an object:** \
+Storing the current position of both players in an object. \
 player: playerPosition \
 This saves us from having a sparse array. \
 Storing all the previous moves of the players, is not particularly helpful for the core
