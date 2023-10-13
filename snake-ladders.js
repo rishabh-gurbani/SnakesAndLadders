@@ -44,11 +44,26 @@ const snakeLadders = (playerNames) => {
     //
 
     // making use of map for storing player positions
-    const board = new Map();
-    board.set("gameStatus", "In progress"); // In progress, or name of winner
-    players.forEach(player => {
-        board.set(player, 1);
-    });
+    const board = {
+        snakesAndLadders: {
+            // snakes
+            28: 10,
+            37: 3,
+            48: 16,
+            75: 32,
+            94: 71,
+            96: 42,
+            // ladders
+            4: 56,
+            12: 50,
+            14: 55,
+            22: 58,
+            41: 79,
+            54: 88,
+        },
+        gameStatus: "In Progress",
+        ...players.reduce((obj, player) => ({ ...obj, [player]: 1 }), {}),
+    };
     // each player starts at 1
     // board should look like this after initialisation
     // board{
@@ -58,42 +73,33 @@ const snakeLadders = (playerNames) => {
     //     abhinav: 1
     //  }
 
-    // storing history of moves, as list of board objects
-    const gameHistory = [];
-
-
     // 5. Snake and Ladder positions on board
     // using a lookup table for snake and ladder, start and end points.
     // start : end
     // can expose API to simpy add, remove or create new positions from scratch
-    // snakes, ladders defined with "let", for these modifications, in case of new positions
-    let snakes = {
-        28: 10,
-        37: 3,
-        48: 16,
-        75: 32,
-        94: 71,
-        96: 42,
-    }
+    // snakesAndLadders defined with "let", for these modifications, in case of new positions
+    // single object for easier implementation
 
-    let ladders = {
-        4: 56,
-        12: 50,
-        14: 55,
-        22: 58,
-        41: 79,
-        54: 88,
-    }
+    // to add, modify or delete snakes and ladders
+    const modifySnakesLadder = ({key, value = null})=>{
+        // if only key provided then delete key
+        const snakesAndLadders = board.snakesAndLadders;
+        if(!value && !snakesAndLadders[value]){
+            delete snakesAndLadders.value;
+        }else{
+            snakesAndLadders[key] = value;
+        }
+    };
 
-    // if single change
-    const addOrModifySnakes = (start, end) => {
-        snakes[start] = end;
-    }
+    // storing history of moves, as list of board objects
+    const gameHistory = [];
 
-    // positions is a list of list, each list having start, end positions
-    const createNewSnakes = (positions) =>{
-        snakes = positions.reduce((acc, [start, end]) => ({ ...acc, [start]: end }), {});
-    }
+    const { snakesAndLadders , ...rest} = board;
+    gameHistory.push({
+        status: "Game Start",
+        player: playerNames[currentPlayer],
+        ...rest,
+    });
 
     // A valid move has to only consider the number on the die
     // two players can be on the same spot
@@ -103,45 +109,60 @@ const snakeLadders = (playerNames) => {
 
     function getGameStatus() {
         let status = "In progress";
-        board.forEach( (value, key) => {
-                if (value === 100) status = `${key} won the game!`;
+        for (const [key, value] of Object.entries(board)){
+            if (value === 100) {
+                status = `${key} won the game!`;
+                break;
             }
-        );
+        }
         return status;
     }
 
-    // 5. Changing player position on board
+    // 6. Changing player position on board
     function makeMove(player, move){
-        const currPosition = board.get(player);
+        const currPosition = board[player];
 
         let nextPosition = currPosition + move;
 
         // check for snake or ladder
-        if(snakes[nextPosition]){
-            console.log(`Fell down from ${nextPosition} to ${snakes[nextPosition]}`);
-            nextPosition = snakes[nextPosition];
-        } else if (ladders[nextPosition]){
-            console.log(`Went up from ${nextPosition} to ${ladders[nextPosition]}`);
-            nextPosition =ladders[nextPosition];
+        const snakesAndLadders = board.snakesAndLadders;
+        if(snakesAndLadders[nextPosition]){
+            // debug messages
+            const startMessage = nextPosition < snakesAndLadders[nextPosition] ?
+                `Ladder ascent: ${player} rises from ` :
+                `Snake bite: ${player} falls from ` ;
+            const endMessage = `${nextPosition} to ${snakesAndLadders[nextPosition]}`;
+            console.log(startMessage + endMessage);
+
+            nextPosition = snakesAndLadders[nextPosition];
         }
 
         // can move ahead only if next position is <= 100
         // position can not exceed 100.
         // in case that happens, don't make a move.
         if(nextPosition <= 100) {
-            board.set(player, nextPosition);
-            board.set("gameStatus", getGameStatus());
+            board[player] = nextPosition;
+            board["gameStatus"] = getGameStatus();
         }
+
         // if move is 6, player gets another turn.
-        if (move !== 6) {
+        if (move === 6) {
+            // check for third six
+            const [thirdLastMove, secondLastMove, lastMove] = gameHistory.slice(-3);
+            if(secondLastMove?.move === 6 && lastMove?.move === 6){
+                console.log(`${player} rolled a third six! Moves nullified.`);
+                // thirdLastMove need not be followed be ?
+                // condition ensure
+                board[player] = thirdLastMove[player];
+                currentPlayer = nextPlayer(currentPlayer);
+            }
+        } else{
             currentPlayer = nextPlayer(currentPlayer);
         }
     }
 
-    console.log(getGameStatus());
-
     // API to play the game
-    return (player, move)=>{
+    return (player, move)=> {
         // check for valid player
         if(!players.includes(player) || player!== players[currentPlayer]){
             return [false, "Invalid player!", currentPlayer];
@@ -154,14 +175,18 @@ const snakeLadders = (playerNames) => {
 
         makeMove(player, move);
 
-        gameHistory.push(new Map(board));
+        const { snakesAndLadders , ...rest} = board;
 
-        // returning currenPlayer only for testing purposes
-        return [true, board, currentPlayer, gameHistory];
+        gameHistory.push({
+            player: playerNames[currentPlayer],
+            move: move,
+            ...rest,
+        });
 
-    }
+        // returning currentPlayer only for testing purposes
+        return [true, {...rest}, currentPlayer, gameHistory];
 
-
+    };
 }
 
 module.exports = {snakeLadders}
